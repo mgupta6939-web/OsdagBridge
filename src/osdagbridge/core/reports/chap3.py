@@ -424,7 +424,7 @@ This section summarizes all loads applied to the bridge and the load combination
 \hline
 \textbf{Vehicle} & \textbf{Total Load (kN)} & \textbf{Impact Factor} & \multicolumn{3}{c|}{\textbf{Braking Load}} \\
 \cline{4-6}
-& & & \textbf{Considered?} & \textbf{Value (kN)} & \textbf{Eccentricity (m)} \\
+& & & \shortstack{\textbf{Considered?}} & \textbf{Value (kN)} & \shortstack{\textbf{Eccentricity}\\\textbf{(m)}} \\
 \hline
 \endhead
 """ + veh_rows_str + r"""
@@ -448,11 +448,11 @@ This section summarizes all loads applied to the bridge and the load combination
 \hline
 \textnormal{Hourly Wind Pressure, Pz} & """ + pz_display + (r""" N/m\textsuperscript{2}""" if pz_display != "N/A" else "") + r""" \\[6pt]
 \hline
-\textnormal{Transverse Wind Force} & """ + (_render_value(input_dict, KEY_WL_TRANSVERSE_WIND_FORCE, ' kN')) + r""" \\[6pt]
+\textnormal{Transverse Wind Force} & """ + (_render_value(input_dict, KEY_WL_TRANSVERSE_WIND_FORCE, ' kN') or "N.A.") + r""" \\[6pt]
 \hline
-\textnormal{Longitudinal Wind Force} & """ + (_render_value(input_dict, KEY_WL_LONGITUDINAL_WIND_FORCE, ' kN')) + r""" \\[6pt]
+\textnormal{Longitudinal Wind Force} & """ + (_render_value(input_dict, KEY_WL_LONGITUDINAL_WIND_FORCE, ' kN') or "N.A.") + r""" \\[6pt]
 \hline
-\textnormal{Vertical Wind Force} & """ + (_render_value(input_dict, KEY_WL_VERTICAL_WIND_FORCE, ' kN')) + r""" \\[6pt]
+\textnormal{Vertical Wind Force} & """ + (_render_value(input_dict, KEY_WL_VERTICAL_WIND_FORCE, ' kN') or "N.A.") + r""" \\[6pt]
 \hline
 \end{longtable}
 
@@ -460,7 +460,7 @@ This section summarizes all loads applied to the bridge and the load combination
 \begin{longtable}{|L{5.5cm}|p{10.0cm}|}
 \caption{\textbf{Earthquake Load (EL) --- per IRC 6}}
 \hline
-\textbf{parameter} & \textbf{value} \\
+\textbf{Parameter} & \textbf{Value} \\
 \hline
 \textnormal{Seismic Zone} & """ + (_render_value(input_dict, 'seismic_zone')) + r""" [from Project Location] \\[6pt]
 \hline
