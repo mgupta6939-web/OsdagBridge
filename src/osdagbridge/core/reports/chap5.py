@@ -145,6 +145,35 @@ from osdagbridge.core.reports.report_utils import _tex, _render_value, get_girde
 
 if TYPE_CHECKING:
     pass
+def _gov_ur_girders(bridge):
+    """Highest UR over all girders and all check categories (Table 5.12 data)."""
+    res = ((bridge.output_dict.get("design_results", {}) or {})
+           .get(KEY_SD_ULS_PER_GIRDER, {}) or {})
+    vals = []
+    for cat in res.values():
+        if not isinstance(cat, dict):
+            continue
+        for g in cat.values():
+            if isinstance(g, dict):
+                try:
+                    vals.append(float(g.get("ur")))
+                except (TypeError, ValueError):
+                    pass
+    return max(vals) if vals else None
+
+
+def _gov_ur_bracing(bridge):
+    """Highest efficiency over all cross bracing pairs, members and force types."""
+    vals = []
+    for pair in bridge.get_cb_pairs():
+        for member in ("diagonal", "chord"):
+            for ft in ("tension", "compression"):
+                v = bridge._cb_osdag(pair, member, ft).get("efficiency")
+                try:
+                    vals.append(float(v))
+                except (TypeError, ValueError):
+                    pass
+    return max(vals) if vals else None
 def ch5_design_checks(checks_data, bridge) -> str:
     """Chapter 5 — Design Checks.
 
@@ -315,6 +344,7 @@ def ch5_design_checks(checks_data, bridge) -> str:
     ur_chart_tex = (charts.include_tex(
         _ur_png, "Figure 5.1: Utilization ratios (red dashed line: UR = 1.0)")
         if _ur_png else "")
+   
 
     # Generate Table 5.6 rows
     # LTB UR stored as percent → show ratio (2 dp); engine bands via _interaction_status.
@@ -1074,7 +1104,29 @@ Fatigue Shear Resistance, $Q_r$ & IRC 22 Table 8 ($\phi d$, $N_{sc}$) & """
         _ed_shear_row,
     ]
     t522_content = "\n".join(_t522)
+    import re
 
+    def _row_ur(row):
+        """UR = the number in the last cell of a table row."""
+        last = str(row).split("&")[-1]
+        m = re.search(r"\d+\.\d+", last)
+        return float(m.group()) if m else None
+
+    def _max_ur(prefix):
+        vals = [_row_ur(r) for r in _t522
+                if str(r).lstrip().startswith(prefix)]
+        vals = [v for v in vals if v is not None]
+        return max(vals) if vals else None
+
+    _deck_ur = _max_ur("Deck")
+    _ed_ur = _max_ur("End Diaphragm")
+    _ur5_png = charts.ur_chart(
+        ["Plate girders", "Deck slab", "Cross bracing", "End diaphragms"],
+        [_gov_ur_girders(bridge), _deck_ur, _gov_ur_bracing(bridge), _ed_ur],
+        title="Governing Utilization Ratio by Element")
+    ur_summary_tex = (charts.include_tex(
+        _ur5_png, "Figure 5.2: Governing utilization ratio of primary elements "
+                  "(red dashed line: UR = 1.0)") if _ur5_png else "")
     return r"""
 \chapter{Design Checks}
 
@@ -1500,6 +1552,7 @@ End diaphragms at the supports transfer transverse loads to the bearings, restra
 % ===========================
 \section{Overall Design Check Summary}
 \label{sec:overall-summary}
+""" + ur_summary_tex + r"""
 % ===========================
 
 \vspace{1em}

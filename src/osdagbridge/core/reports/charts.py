@@ -47,8 +47,9 @@ def ur_chart(labels, values, title="Utilization Ratios"):
     ax.set_ylabel("Utilization ratio")
     ax.set_title(title, fontsize=10)
     for b, v in zip(bars, vals):
-        ax.text(b.get_x() + b.get_width() / 2, v + 0.02, f"{v:.2f}",
-                ha="center", va="bottom", fontsize=8)
+        ax.text(b.get_x() + b.get_width() / 2, v + 0.03, f"{v:.2f}",
+                ha="center", va="bottom", fontsize=8, zorder=5,
+                bbox=dict(facecolor="white", edgecolor="none", pad=1.0))
     ax.legend(loc="upper right", fontsize=8)
     ax.spines[["top", "right"]].set_visible(False)
     return _save(fig, "ur_chart.png")
