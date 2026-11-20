@@ -486,7 +486,7 @@ This section summarizes all loads applied to the bridge and the load combination
 \begin{longtable}{|L{5.5cm}|p{10.0cm}|}
 \caption{\textbf{Temperature Load (TL) --- per IRC 6}}
 \hline
-\textbf{parameter} & \textbf{value} \\
+\textbf{Parameter} & \textbf{Value} \\
 \hline
 \textnormal{Maximum Shade Temperature} & """ + (_render_value(input_dict, 'shade_temp_max')) + r""" $^\circ$C \\[6pt]
 \hline
