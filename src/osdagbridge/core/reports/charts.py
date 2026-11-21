@@ -72,3 +72,42 @@ def material_chart(items, title="Material Quantities (Total Weight)"):
     ax.set_xlim(0, max(vals) * 1.15)
     ax.spines[["top", "right"]].set_visible(False)
     return _save(fig, "material_chart.png")
+
+def steel_chart(items, title="Structural Steel Tonnage"):
+    """items = [(label, weight_MT), ...] for girders, cross bracing, end
+    diaphragms. Non-numeric entries are skipped; returns None if empty."""
+    pairs = [(l, _num(v)) for l, v in items if _num(v) is not None]
+    if not pairs:
+        return None
+    names, vals = zip(*pairs)
+    fig, ax = plt.subplots(figsize=(6.3, 2.8))
+    bars = ax.bar(names, vals, color=GREEN, width=0.5)
+    ax.set_ylabel("Weight (MT)")
+    ax.set_title(title, fontsize=10)
+    ax.set_ylim(0, max(vals) * 1.2)
+    for b, v in zip(bars, vals):
+        ax.text(b.get_x() + b.get_width() / 2, v, f"{v:.2f}",
+                ha="center", va="bottom", fontsize=8)
+    ax.spines[["top", "right"]].set_visible(False)
+    return _save(fig, "steel_chart.png")
+
+
+def concrete_rebar_chart(concrete_m3, rebar_mt,
+                         title="Deck Concrete Volume vs Reinforcement Weight"):
+    """Two panels (different units): concrete volume in m3 and
+    reinforcement steel weight in MT. Returns None if both are missing."""
+    c, r = _num(concrete_m3), _num(rebar_mt)
+    if c is None and r is None:
+        return None
+    fig, (a1, a2) = plt.subplots(1, 2, figsize=(6.3, 2.8))
+    for ax, label, val, unit in ((a1, "Concrete (M40)", c, "Volume (m$^3$)"),
+                                 (a2, "Reinforcement (Fe 500)", r, "Weight (MT)")):
+        v = val if val is not None else 0.0
+        ax.bar([label], [v], color=GREEN, width=0.5)
+        ax.set_ylabel(unit)
+        ax.set_ylim(0, max(v, 1e-9) * 1.2)
+        ax.text(0, v, f"{v:.2f}", ha="center", va="bottom", fontsize=8)
+        ax.spines[["top", "right"]].set_visible(False)
+    fig.suptitle(title, fontsize=10)
+    fig.tight_layout()
+    return _save(fig, "concrete_rebar_chart.png")

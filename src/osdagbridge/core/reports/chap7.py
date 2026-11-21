@@ -29,20 +29,36 @@ def ch7_quantities(input_dict):
 \end{longtable}
 """
     from osdagbridge.core.reports import charts
-    rows = [
-        ("Girders", "steel_girders_wt_total"),
-        ("Bracing (top)", "bracing_top_wt_total"),
-        ("Bracing (bottom)", "bracing_bot_wt_total"),
-        ("Bracing (diagonal)", "bracing_diag_wt_total"),
-        ("Deck concrete", "concrete_deck_wt_total"),
-        ("Reinforcement", "rebar_deck_wt_total"),
-        ("Shear studs", "shear_studs_wt_total"),
-        ("Crash barrier", "crash_barrier_wt_total"),
-    ]
-    png = charts.material_chart([(n, input_dict.get(k)) for n, k in rows])
+
+    def _f(key):
+        try:
+            return float(str(input_dict.get(key)).replace(",", ""))
+        except (TypeError, ValueError):
+            return None
+
+    # Cross bracing = top + bottom + diagonal chords
+    _br = [_f(k) for k in ("bracing_top_wt_total", "bracing_bot_wt_total",
+                           "bracing_diag_wt_total")]
+    _br_total = sum(v for v in _br if v is not None) if any(
+        v is not None for v in _br) else None
+
+    # Figure 7.1: structural steel tonnage (end diaphragms only if the
+    # take-off provides that quantity)
+    png = charts.steel_chart([
+        ("Girders", _f("steel_girders_wt_total")),
+        ("Cross bracing", _br_total),
+        ("End diaphragms", _f("end_diaphragm_wt_total")),
+    ])
     if png:
         tex += charts.include_tex(
-            png, "Figure 7.1: Total weight of each material item (MT)")
-    return tex
+            png, "Figure 7.1: Structural steel tonnage by member group (MT)")
 
+    # Figure 7.2: deck concrete volume vs reinforcement steel weight
+    png = charts.concrete_rebar_chart(
+        _f("concrete_deck_vol_total"), _f("rebar_deck_wt_total"))
+    if png:
+        tex += charts.include_tex(
+            png, "Figure 7.2: Deck concrete volume (m$^3$) vs "
+                 "reinforcement steel weight (MT)")
+    return tex
 
